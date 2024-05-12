@@ -81,6 +81,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="CusparseSpdm.cu" />
+    <CudaCompile Include="DenseReuseNoAsync.cu" />
     <CudaCompile Include="DenseReuseSpmm.cu" />
     <CudaCompile Include="G2ShmemAsyncGCOOSpDM.cu" />
     <CudaCompile Include="GCOOSpDM.cu" />
@@ -94,6 +95,7 @@
     <ClInclude Include="constants.h" />
     <ClInclude Include="CublasGeMM.h" />
     <ClInclude Include="CusparseSpdm.h" />
+    <ClInclude Include="DenseReuseNoAsync.h" />
     <ClInclude Include="DenseReuseSpmm.h" />
     <ClInclude Include="G2ShmemAsyncGCOOSpDM.h" />
     <ClInclude Include="GCOOSpDM.h" />

@@ -11,6 +11,7 @@
 #include "CublasGeMM.h"
 #include "CusparseSpdm.h"
 #include "DenseReuseSpmm.h"
+#include "DenseReuseNoAsync.h"
 
 
 void setArgumentInt(int argc, char** argv, const char* string_ref, size_t& target);
@@ -28,6 +29,8 @@ void benchSpGemm(
 
 int main(int argc, char** argv) {
 	printf("[Benchmark sparse gemm on GPU (Sparse A multiply dence B)] - Starting...\n\n\n");
+
+	checkCudaErrors(cudaSetDevice(0));
 
 	size_t nRowsA = N_ROWS_A;
 	size_t nColsA = N_COLS_A;
@@ -52,27 +55,42 @@ int main(int argc, char** argv) {
 	setArgumentInt(argc, argv, "nRowsB", nRowsB);
 	setArgumentInt(argc, argv, "nColsB", nColsB);
 
-	printf("[test DenseReuseSpmm]\n");
-	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new DenseReuseSpmm());
-	printf("[test DenseReuseSpmm over]\n\n\n");
 
-	printf("[test GCOOSpDM]\n");
-	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new GCOOSpDM());
-	printf("[test GCOOSpDM over]\n\n\n");
-
-	printf("[test G2ShmemAsyncGCOOSpDM]\n");
-	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new G2ShmemAsyncGCOOSpDM());
-	printf("[test G2ShmemAsyncCGCOOSpDM over]\n\n\n");
-
-	printf("[test CublasGeMM]\n");
+	printf("[Warmup By CublasGeMM and CusparseSpmm]\n");
+	cudaDeviceProp prop;
+	cudaGetDeviceProperties(&prop, 0);
+	printf("Number of SMs: %d\n", prop.multiProcessorCount);
 	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new CublasGeMM());
-	printf("[test CublasGeMM over]\n\n\n");
-
-	printf("[test CusparseSpdm]\n");
 	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new CusparseSpdm());
-	printf("[test CusparseSpdm over]\n\n\n");
+	printf("[Warpup By CublasGeMM  and CusparseSpmm over]\n\n\n\n\n\n");
 
+	printf("[======Begin Formal Test======]\n\n");
 
+	printf("[GCOOSpDM Test]\n");
+	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new GCOOSpDM());
+	printf("[GCOOSpDM Test Over]\n\n\n");
+
+	printf("[G2ShmemAsyncGCOOSpDM Test]\n");
+	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new G2ShmemAsyncGCOOSpDM());
+	printf("[G2ShmemAsyncCGCOOSpDM Test Over]\n\n\n");
+
+	printf("[AsyncDenseReuseSpmm Test]\n");
+	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new DenseReuseSpmm());
+	printf("[AsyncReuseSpmm Test Over]\n\n\n");
+
+	printf("[DenseReuseNoAsync Test]\n");
+	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new DenseReuseNoAsync());
+	printf("[DenseReuseNoAsync Test Over]\n\n\n");
+
+	printf("[CusparseSpdm Test]\n");
+	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new CusparseSpdm());
+	printf("[CusparseSpdm Test Over]\n\n\n");
+
+	printf("[CublasGeMM Test]\n");
+	timeGemm(nRowsA, nColsA, nRowsB, nColsB, sparsity, new CublasGeMM());
+	printf("[CublasGeMM Test Over]\n\n\n");
+
+	printf("[======Formal Test Over======]\n\n\n\n\n\n");
 
 	return 0;
 }
